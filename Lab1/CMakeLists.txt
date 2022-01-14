@@ -1,0 +1,1 @@
+add_executable(Lab1 src/main.cpp)
