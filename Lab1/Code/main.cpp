@@ -4,7 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <pthread.h>
-#include <vector>
+#include <unistd.h>
 
 struct thread_inputs_t {
     int **A;
@@ -73,6 +73,9 @@ int main(int argc, char *argv[]) {
 
     auto thread_handles = (pthread_t *) malloc(num_threads * sizeof(pthread_t));
 
+    double start_time;
+    GET_TIME(start_time)
+
     for (auto i = 0; i < num_threads; i++) {
         pthread_t handle;
         auto *input_struct = (thread_inputs_t *) (malloc(sizeof(thread_inputs_t)));
@@ -84,15 +87,10 @@ int main(int argc, char *argv[]) {
     for (auto i = 0; i < num_threads; i++) {
         pthread_join(thread_handles[i], nullptr);
     }
+    double end_time;
+    GET_TIME(end_time)
 
-    for (auto j = 0; j < n; j++) {
-        for (auto i = 0; i < n; i++) {
-            std::cout << C[j][i] << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    SaveOutput(C, &n, 0);
+    SaveOutput(C, &n, end_time - start_time);
 
     return 0;
 }
