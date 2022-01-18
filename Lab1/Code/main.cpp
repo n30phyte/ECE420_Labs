@@ -34,17 +34,15 @@ void *mat_mul(void *inputs) {
     auto j_start = (n / (int) sqrt(p)) * y;
     auto j_end = ((n / (int) sqrt(p)) * (y + 1)) - 1;
 
-    int sum;
-
-    for (auto j = j_start; j <= j_end; j++) {
-        for (auto i = i_start; i <= i_end; i++) {
-            sum = 0;
+    for (auto i = i_start; i <= i_end; i++) {
+        for (auto j = j_start; j <= j_end; j++) {
+            int sum = 0;
             for (auto r = 0; r < n; r++) {
-                int a = A[r][i];
-                int b = B[j][r];
+                int a = A[i][r];
+                int b = B[r][j];
                 sum += a * b;
             }
-            C[j][i] = sum;
+            C[i][j] = sum;
         }
     }
 
@@ -73,26 +71,26 @@ int main(int argc, char *argv[]) {
         C[row] = (int *) malloc(n * sizeof(int *));
     }
 
-    std::vector<pthread_t> thread_handles(num_threads);
+    auto thread_handles = (pthread_t *) malloc(num_threads * sizeof(pthread_t));
 
     for (auto i = 0; i < num_threads; i++) {
         pthread_t handle;
         auto *input_struct = (thread_inputs_t *) (malloc(sizeof(thread_inputs_t)));
         *input_struct = {A, B, C, n, i, num_threads};
         pthread_create(&handle, nullptr, mat_mul, (void *) input_struct);
+        thread_handles[i] = handle;
     }
 
-    for (auto thread : thread_handles) {
-        int retval = pthread_join(thread, nullptr);
-        printf("value: %d", retval);
+    for (auto i = 0; i < num_threads; i++) {
+        pthread_join(thread_handles[i], nullptr);
     }
 
-//    for (auto j = 0; j < n; j++) {
-//        for (auto i = 0; i < n; i++) {
-//            std::cout << C[j][i] << " ";
-//        }
-//        std::cout << std::endl;
-//    }
+    for (auto j = 0; j < n; j++) {
+        for (auto i = 0; i < n; i++) {
+            std::cout << C[j][i] << " ";
+        }
+        std::cout << std::endl;
+    }
 
     SaveOutput(C, &n, 0);
 
