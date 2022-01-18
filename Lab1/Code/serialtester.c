@@ -17,33 +17,36 @@ int main(int argc, char *argv[]) {
         C[i] = malloc(n * sizeof(int));
 
     // Calculating
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
             C[i][j] = 0;
-            for (k = 0; k < n; k++)
+            for (k = 0; k < n; k++) {
                 C[i][j] += A[i][k] * B[k][j];
+            }
         }
+    }
 
     // Testing
-    if ((fp = fopen("data_output", "r")) == NULL) {
-        printf("Fail to load the output data.\n");
-        return 1;
-    }
-    fscanf(fp, "%d\n\n", &temp);
-    if (temp != n) {
-        printf("Error, the output dimension did not match the input.\n");
-        return 2;
-    }
-    for (i = 0; i < n && flag == 1; i++)
-        for (j = 0; j < n && flag == 1; j++) {
-            fscanf(fp, "%d", &temp);
-            if (temp != C[i][j])
-                flag = 0;
-        }
-    if (flag == 1)
-        printf("The result is correct!\n");
-    else
-        printf("The result is wrong.\n");
+    //    if ((fp = fopen("data_output", "r")) == NULL) {
+    //        printf("Fail to load the output data.\n");
+    //        return 1;
+    SaveOutput(C, &n, 0);
+
+    //    fscanf(fp, "%d\n\n", &temp);
+    //    if (temp != n) {
+    //        printf("Error, the output dimension did not match the input.\n");
+    //        return 2;
+    //    }
+    //    for (i = 0; i < n && flag == 1; i++)
+    //        for (j = 0; j < n && flag == 1; j++) {
+    //            fscanf(fp, "%d", &temp);
+    //            if (temp != C[i][j])
+    //                flag = 0;
+    //        }
+    //    if (flag == 1)
+    //        printf("The result is correct!\n");
+    //    else
+    //        printf("The result is wrong.\n");
 
     for (i = 0; i < n; i++) {
         free(A[i]);
