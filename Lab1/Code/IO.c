@@ -24,12 +24,12 @@ int LoadInput(int ***A, int ***B, int *n) {
     }
     fscanf(ip, "%d\n", n);
 
-    *A = malloc(*n * sizeof(int *));
-    *B = malloc(*n * sizeof(int *));
+    *A = (int **) malloc(*n * sizeof(int *));
+    *B = (int **) malloc(*n * sizeof(int *));
 
     for (i = 0; i < *n; i++) {
-        (*A)[i] = malloc(*n * sizeof(int));
-        (*B)[i] = malloc(*n * sizeof(int));
+        (*A)[i] = (int *) malloc(*n * sizeof(int));
+        (*B)[i] = (int *) malloc(*n * sizeof(int));
     }
 
     for (i = 0; i < *n; i++)
