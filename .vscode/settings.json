@@ -1,0 +1,31 @@
+{
+  "[latex]": {
+    "editor.wordWrapColumn": 120,
+    "editor.wordWrap": "wordWrapColumn",
+  },
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "latexmk",
+      "tools": [
+        "latexmk"
+      ]
+    }
+  ],
+  "latex-workshop.latex.rootFile.useSubFile": false,
+  "latex-workshop.latex.outDir": "%WORKSPACE_FOLDER%/build/",
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk",
+      "command": "latexmk",
+      "args": [
+        "-shell-escape",
+        "-synctex=1",
+        "-lualatex",
+        "-file-line-error",
+        "-interaction=nonstopmode",
+        "-outdir=%OUTDIR%",
+        "%DOC%"
+      ]
+    }
+  ]
+}
