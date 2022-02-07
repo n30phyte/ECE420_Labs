@@ -7,7 +7,7 @@
 
 #include "server.h"
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_rwlock_t rwlock = PTHREAD_RWLOCK_INITIALIZER;
 
 void *handle_client(void *args) {
 
@@ -30,23 +30,18 @@ void *handle_client(void *args) {
 
         ParseMsg(msg, &request);
 
-        pthread_mutex_lock(&mutex);
-        if (COM_IS_VERBOSE) {
-            printf("%d locked\n", client_fd);
-        }
-
         if (request.is_read) {
+            pthread_rwlock_rdlock(&rwlock);
             getContent(response, request.pos, table);
+            pthread_rwlock_unlock(&rwlock);
         } else {
+            pthread_rwlock_wrlock(&rwlock);
             setContent(request.msg, request.pos, table);
             getContent(response, request.pos, table);
+            pthread_rwlock_unlock(&rwlock);
         }
         write(client_fd, response, COM_BUFF_SIZE);
 
-        if (COM_IS_VERBOSE) {
-            printf("%d unlocked\n", client_fd);
-        }
-        pthread_mutex_unlock(&mutex);
     }
     // END DO THINGS
 

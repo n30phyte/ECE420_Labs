@@ -7,7 +7,7 @@
 
 #include "server.h"
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_rwlock_t *rwlock_table;
 
 void *handle_client(void *args) {
 
@@ -30,23 +30,17 @@ void *handle_client(void *args) {
 
         ParseMsg(msg, &request);
 
-        pthread_mutex_lock(&mutex);
-        if (COM_IS_VERBOSE) {
-            printf("%d locked\n", client_fd);
-        }
-
         if (request.is_read) {
+            pthread_rwlock_rdlock(&rwlock_table[request.pos]);
             getContent(response, request.pos, table);
+            pthread_rwlock_unlock(&rwlock_table[request.pos]);
         } else {
+            pthread_rwlock_wrlock(&rwlock_table[request.pos]);
             setContent(request.msg, request.pos, table);
             getContent(response, request.pos, table);
+            pthread_rwlock_unlock(&rwlock_table[request.pos]);
         }
         write(client_fd, response, COM_BUFF_SIZE);
-
-        if (COM_IS_VERBOSE) {
-            printf("%d unlocked\n", client_fd);
-        }
-        pthread_mutex_unlock(&mutex);
     }
     // END DO THINGS
 
@@ -57,6 +51,12 @@ void *handle_client(void *args) {
 
 int main(int argc, char *argv[]) {
     Server server(argc, argv);
+
+    rwlock_table = (pthread_rwlock_t *) malloc(server.table_size * sizeof(pthread_rwlock_t));
+
+    for (auto i = 0; i < server.table_size; i++) {
+        pthread_rwlock_init(&rwlock_table[i], nullptr);
+    }
 
     server.run(&handle_client);
 }
