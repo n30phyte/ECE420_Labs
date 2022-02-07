@@ -1,19 +1,29 @@
-all: client server1 server2 server3 server4
+C = gcc
+CXX = g++
+override CFLAGS += -std=c11 -pthread -O2
+override CXXFLAGS += -std=c++11 -fpermissive -pthread -Wno-unused-result -O2
+
+.PHONY: clean
+
+all: client main1 main2 main3 main4 attacker
 
 client: client.c timer.h common.h common.c
-	g++ -std=c++11 -fpermissive -pthread -o client client.c
+	$(C) $(CFLAGS) client.c -o $@
 
-server1: server1.cpp common.h common.c server.cpp server.h
-	g++ -std=c++11 -pthread -o server1 server1.cpp server.cpp common.c
+main1: main1.cpp common.h common.c server.cpp server.h
+	$(CXX) $(CXXFLAGS) main1.cpp server.cpp common.c -o $@
 
-server2: server2.cpp common.h common.c server.cpp server.h
-	g++ -std=c++11 -pthread -o server2 server2.cpp  server.cpp common.c
+main2: main2.cpp common.h common.c server.cpp server.h
+	$(CXX) $(CXXFLAGS) main2.cpp server.cpp common.c -o $@
 
-server3: server3.cpp common.h common.c server.cpp server.h
-	g++ -std=c++11 -pthread -o server3 server3.cpp  server.cpp common.c
+main3: main3.cpp common.h common.c server.cpp server.h
+	$(CXX) $(CXXFLAGS) main3.cpp server.cpp common.c -o $@
 
-server4: server4.cpp common.h common.c server.cpp server.h
-	g++ -std=c++11 -pthread -o server4 server4.cpp  server.cpp common.c
+main4: main4.cpp common.h common.c server.cpp server.h
+	$(CXX) $(CXXFLAGS) main4.cpp server.cpp common.c -o $@
+
+attacker: attacker.c common.c common.h
+	$(C) $(CFLAGS) attacker.c -lm -o $@
 
 clean:
-	rm -f main client server1 server2 server3 server4
+	rm -f client main1 main2 main3 main4 attacker

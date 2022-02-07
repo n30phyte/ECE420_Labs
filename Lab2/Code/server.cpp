@@ -3,72 +3,86 @@
 #include "common.h"
 
 #include <arpa/inet.h>
+#include <cerrno>
 #include <cstdio>
 #include <sys/socket.h>
 
+/**
+ * Initializes server with arguments passed into main
+ */
 Server::Server(int argc, char *argv[]) {
-
     if (argc != 4) {
-        fprintf(stderr, "usage: %s <Size of theArray_ on server> <server ip> <server port>\n", argv[0]);
-        exit(0);
+        fprintf(stderr, "usage: %s <Size of array on server> <server ip> <server port>\n", argv[0]);
+        exit(-1);
     }
 
+    // Parse inputs
     table_size = strtol(argv[1], nullptr, 10);
     char *server_ip = argv[2];
     long server_port = strtol(argv[3], nullptr, 10);
 
-    threads = (pthread_t *) malloc(COM_NUM_REQUEST * sizeof(pthread_t));
-
-    table = (char **) malloc(table_size * sizeof(char *));
-    memory_access_latency_table = (double *) malloc(COM_NUM_REQUEST * sizeof(double));
-
+    // Set up tables
+    thread_table = new pthread_t[COM_NUM_REQUEST];
+    data_table = new char *[table_size];
+    memory_access_latency_table = new double[COM_NUM_REQUEST];
+    // Initialize table with data
     for (auto i = 0; i < table_size; i++) {
-        table[i] = (char *) malloc(COM_BUFF_SIZE * sizeof(char));
-        sprintf(table[i], "String %d: the initial value", i);
+        data_table[i] = new char[COM_BUFF_SIZE];
+        sprintf(data_table[i], "String %d: the initial value", i);
     }
 
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (socket_fd < 0) {
+        printf("Error creating socket: %d\n", errno);
+        exit(-1);
+    }
 
-    sockaddr_in sock_var;
+    sockaddr_in sock_var{};
     sock_var.sin_addr.s_addr = inet_addr(server_ip);
     sock_var.sin_port = server_port;
     sock_var.sin_family = AF_INET;
 
     int status = bind(socket_fd, (struct sockaddr *) &sock_var, sizeof(sock_var));
     if (status < 0) {
-        printf("socket creation failed, errno: %d\n", status);
-        close(socket_fd);
+        printf("Error binding socket: %d\n", errno);
+        exit(-1);
     }
 
-    printf("socket has been created\n");
-    status = listen(socket_fd, 2000);
+#if COM_IS_VERBOSE == 1
+    printf("Socket has been created\n");
+#endif
 
+    status = listen(socket_fd, 2000);
     if (status < 0) {
-        printf("listen failed, errno: %d\n", status);
-        close(socket_fd);
+        printf("Error listening socket: %d\n", errno);
+        exit(-1);
     }
 }
 
-void Server::run(void *(thread_function) (void *args)) {
+[[noreturn]] void Server::run(void *(thread_function) (void *args)) const {
     while (true) {
         int i = 0;
         while (i < COM_NUM_REQUEST) {
             int client_fd = accept(socket_fd, nullptr, nullptr);
-            auto params = (client_params *) malloc(sizeof(client_params));
+            if (client_fd < 0) {
+                printf("Error accepting socket: %d\n", errno);
+                continue;
+            }
+            auto params = new client_params;
 
             params->memory_access_latency_table = memory_access_latency_table;
             params->client_fd = client_fd;
             params->client_index = i;
-            params->table = table;
+            params->table = data_table;
 
             printf("Connected to client %d\n", client_fd);
 
             pthread_t thread_id;
             pthread_create(&thread_id, nullptr, thread_function, (void *) params);
-            threads[i++] = thread_id;
+            thread_table[i++] = thread_id;
         }
-        for (auto i = 0; i < COM_NUM_REQUEST; i++) {
-            pthread_join(threads[i], nullptr);
+        for (auto j = 0; j < i; j++) {
+            pthread_join(thread_table[j], nullptr);
         }
         saveTimes(memory_access_latency_table, COM_NUM_REQUEST);
     }
@@ -76,18 +90,18 @@ void Server::run(void *(thread_function) (void *args)) {
 
 Server::~Server() {
 
-    if (COM_IS_VERBOSE) {
-        for (long i = 0; i < table_size; i++) {
-            printf("%s\n", table[i]);
-        }
+#if COM_IS_VERBOSE
+    for (long i = 0; i < table_size; i++) {
+        printf("%s\n", data_table[i]);
     }
+#endif
 
     close(socket_fd);
 
-    free(threads);
+    free(thread_table);
 
     for (auto i = 0; i < table_size; i++) {
-        free(table[i]);
+        free(data_table[i]);
     }
-    free(table);
+    free(data_table);
 }

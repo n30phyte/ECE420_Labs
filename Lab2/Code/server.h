@@ -12,13 +12,13 @@ struct client_params {
 
 class Server {
 public:
-    char **table;
+    char **data_table;
     double *memory_access_latency_table;
-    pthread_t *threads;
+    pthread_t *thread_table;
     int socket_fd;
     long table_size;
 
     Server(int argc, char *argv[]);
-    void run(void *(thread_function) (void *args));
+    [[noreturn]] void run(void *(thread_function) (void *args)) const;
     ~Server();
 };

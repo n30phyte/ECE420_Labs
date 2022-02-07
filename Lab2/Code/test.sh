@@ -35,4 +35,4 @@ while [[ $ATTEMPT -ne $Duplicates ]]; do
 	sleep 0.5
 done
 
-mv server_output_time_aggregated time_s4_n$arraysize
+mv server_output_time_aggregated time_s3_n$arraysize

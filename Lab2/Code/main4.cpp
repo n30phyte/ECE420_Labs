@@ -9,7 +9,10 @@
 
 pthread_rwlock_t *rwlock_table;
 
-void *handle_client(void *args) {
+/**
+ * Use an RWLock to handle locking for each entry in the table. 
+ */
+void *multi_rwlock(void *args) {
 
     auto params = (client_params *) args;
 
@@ -20,12 +23,11 @@ void *handle_client(void *args) {
     char msg[COM_BUFF_SIZE];
     read(client_fd, msg, COM_BUFF_SIZE);
 
-    if (COM_IS_VERBOSE) {
-        printf("reading from client: %s\n", msg);
-    }
+#ifdef COM_IS_VERBOSE
+    printf("reading from client: %s\n", msg);
+#endif
 
-    GET_TIME(start);
-    {
+    GET_TIME(start) {
         ClientRequest request;
         char response[COM_BUFF_SIZE];
 
@@ -43,7 +45,7 @@ void *handle_client(void *args) {
         }
         write(client_fd, response, COM_BUFF_SIZE);
     }
-    GET_TIME(finish);
+    GET_TIME(finish)
     elapsed = finish - start;
     params->memory_access_latency_table[params->client_index] = elapsed;
 
@@ -61,5 +63,5 @@ int main(int argc, char *argv[]) {
         pthread_rwlock_init(&rwlock_table[i], nullptr);
     }
 
-    server.run(&handle_client);
+    server.run(&multi_rwlock);
 }
