@@ -17,6 +17,8 @@ Server::Server(int argc, char *argv[]) {
     char *server_ip = argv[2];
     long server_port = strtol(argv[3], nullptr, 10);
 
+    threads = (pthread_t *) malloc(COM_NUM_REQUEST * sizeof(pthread_t));
+
     table = (char **) malloc(table_size * sizeof(char *));
     memory_access_latency_table = (double *) malloc(COM_NUM_REQUEST * sizeof(double));
 
@@ -65,16 +67,13 @@ void Server::run(void *(thread_function) (void *args)) {
         pthread_create(&thread_id, nullptr, thread_function, (void *) params);
         threads[i++] = thread_id;
     }
-    for (auto j = 0; j < i; j++) {
-        pthread_join(threads[j], nullptr);
+    for (auto i = 0; i < COM_NUM_REQUEST; i++) {
+        pthread_join(threads[i], nullptr);
     }
     saveTimes(memory_access_latency_table, COM_NUM_REQUEST);
 }
 
 Server::~Server() {
-    for (auto thread : threads) {
-        pthread_join(thread, nullptr);
-    }
 
     if (COM_IS_VERBOSE) {
         for (long i = 0; i < table_size; i++) {
@@ -83,4 +82,11 @@ Server::~Server() {
     }
 
     close(socket_fd);
+
+    free(threads);
+
+    for (auto i = 0; i < table_size; i++) {
+        free(table[i]);
+    }
+    free(table);
 }
