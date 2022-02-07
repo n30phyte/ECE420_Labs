@@ -12,6 +12,8 @@
 
 char **table;
 
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 void *handle_client(void *args) {
     int client_fd = (long) args;
     char msg[COM_BUFF_SIZE];
@@ -22,6 +24,31 @@ void *handle_client(void *args) {
     }
 
     // DO THINGS
+    {
+        ClientRequest request;
+        char response[COM_BUFF_SIZE];
+
+        ParseMsg(msg, &request);
+
+        pthread_mutex_lock(&mutex);
+        if (COM_IS_VERBOSE) {
+            printf("%d locked\n", client_fd);
+        }
+
+        if (request.is_read) {
+            getContent(response, request.pos, table);
+        } else {
+            setContent(request.msg, request.pos, table);
+            getContent(response, request.pos, table);
+        }
+        write(client_fd, response, COM_BUFF_SIZE);
+
+        if (COM_IS_VERBOSE) {
+            printf("%d unlocked\n", client_fd);
+        }
+        pthread_mutex_unlock(&mutex);
+    }
+    // END DO THINGS
 
     close(client_fd);
 
@@ -46,7 +73,7 @@ int main(int argc, char *argv[]) {
         sprintf(table[i], "String %d: the initial value", i);
     }
 
-    std::vector<pthread_t> threads(COM_NUM_REQUEST);
+    std::vector<pthread_t> threads;
 
     int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -71,9 +98,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-    while (true) {
+    while (threads.size() < COM_NUM_REQUEST) {
         int client_fd = accept(socket_fd, nullptr, nullptr);
         printf("Connected to client %d\n", client_fd);
 
@@ -82,10 +107,14 @@ int main(int argc, char *argv[]) {
         pthread_create(&thread_id, nullptr, handle_client, (void *) client_fd);
         threads.push_back(thread_id);
     }
-#pragma clang diagnostic pop
-    //TODO: join threads
 
+    for (auto thread : threads) {
+        pthread_join(thread, nullptr);
+    }
 
+    for (long i = 0; i < table_size; i++) {
+        printf("%s\n", table[i]);
+    }
 
     close(socket_fd);
 
