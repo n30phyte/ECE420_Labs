@@ -48,7 +48,7 @@ Server::Server(int argc, char *argv[]) {
         exit(-1);
     }
 
-#if COM_IS_VERBOSE == 1
+#if COM_IS_VERBOSE
     printf("Socket has been created\n");
 #endif
 
@@ -75,8 +75,9 @@ Server::Server(int argc, char *argv[]) {
             params->client_index = i;
             params->table = data_table;
 
+#if COM_IS_VERBOSE
             printf("Connected to client %d\n", client_fd);
-
+#endif
             pthread_t thread_id;
             pthread_create(&thread_id, nullptr, thread_function, (void *) params);
             thread_table[i++] = thread_id;

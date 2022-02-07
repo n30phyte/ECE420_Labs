@@ -23,7 +23,7 @@ void *multi_rwlock(void *args) {
     char msg[COM_BUFF_SIZE];
     read(client_fd, msg, COM_BUFF_SIZE);
 
-#ifdef COM_IS_VERBOSE
+#if COM_IS_VERBOSE
     printf("reading from client: %s\n", msg);
 #endif
 

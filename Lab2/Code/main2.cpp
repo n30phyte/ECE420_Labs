@@ -23,7 +23,7 @@ void *multi_mutex(void *args) {
     char msg[COM_BUFF_SIZE];
     read(client_fd, msg, COM_BUFF_SIZE);
 
-#ifdef COM_IS_VERBOSE
+#if COM_IS_VERBOSE
     printf("reading from client: %s\n", msg);
 #endif
 
@@ -34,7 +34,7 @@ void *multi_mutex(void *args) {
         ParseMsg(msg, &request);
 
         pthread_mutex_lock(&mutex_table[request.pos]);
-#ifdef COM_IS_VERBOSE
+#if COM_IS_VERBOSE
         printf("%d locked\n", client_fd);
 #endif
 
@@ -46,7 +46,7 @@ void *multi_mutex(void *args) {
         }
         write(client_fd, response, COM_BUFF_SIZE);
 
-#ifdef COM_IS_VERBOSE
+#if COM_IS_VERBOSE
         printf("%d unlocked\n", client_fd);
 #endif
         pthread_mutex_unlock(&mutex_table[request.pos]);
