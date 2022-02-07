@@ -11,8 +11,7 @@
 #include "common.h"
 
 char **table;
-
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t *mutex_table;
 
 void *handle_client(void *args) {
     int client_fd = (long) args;
@@ -30,7 +29,7 @@ void *handle_client(void *args) {
 
         ParseMsg(msg, &request);
 
-        pthread_mutex_lock(&mutex);
+        pthread_mutex_lock(&mutex_table[request.pos]);
         if (COM_IS_VERBOSE) {
             printf("%d locked\n", client_fd);
         }
@@ -46,7 +45,7 @@ void *handle_client(void *args) {
         if (COM_IS_VERBOSE) {
             printf("%d unlocked\n", client_fd);
         }
-        pthread_mutex_unlock(&mutex);
+        pthread_mutex_unlock(&mutex_table[request.pos]);
     }
     // END DO THINGS
 
@@ -58,7 +57,7 @@ void *handle_client(void *args) {
 int main(int argc, char *argv[]) {
 
     if (argc != 4) {
-        fprintf(stderr, "usage: %s <Size of theArray_ on server> <server ip> <server port>\n", argv[0]);
+        fprintf(stderr, "usage: %s <Size of array> <server ip> <server port>\n", argv[0]);
         exit(0);
     }
 
@@ -67,10 +66,12 @@ int main(int argc, char *argv[]) {
     long server_port = strtol(argv[3], nullptr, 10);
 
     table = (char **) malloc(table_size * sizeof(char *));
+    mutex_table = (pthread_mutex_t *) malloc(table_size * sizeof(pthread_mutex_t));
 
     for (auto i = 0; i < table_size; i++) {
         table[i] = (char *) malloc(COM_BUFF_SIZE * sizeof(char));
         sprintf(table[i], "String %d: the initial value", i);
+        pthread_mutex_init(&mutex_table[i], nullptr);
     }
 
     std::vector<pthread_t> threads;
@@ -84,7 +85,7 @@ int main(int argc, char *argv[]) {
 
     int status = bind(socket_fd, (struct sockaddr *) &sock_var, sizeof(sock_var));
     if (status < 0) {
-        printf("socket creation failed, errno: %d\n", status);
+        printf("socket creation failed\n");
         close(socket_fd);
         return -1;
     }
@@ -93,7 +94,7 @@ int main(int argc, char *argv[]) {
     status = listen(socket_fd, 2000);
 
     if (status < 0) {
-        printf("listen failed, errno: %d\n", status);
+        printf("listen failed\n");
         close(socket_fd);
         return -1;
     }
