@@ -50,27 +50,28 @@ Server::Server(int argc, char *argv[]) {
 }
 
 void Server::run(void *(thread_function) (void *args)) {
+    while (true) {
+        int i = 0;
+        while (i < COM_NUM_REQUEST) {
+            int client_fd = accept(socket_fd, nullptr, nullptr);
+            auto params = (client_params *) malloc(sizeof(client_params));
 
-    int i = 0;
-    while (i < COM_NUM_REQUEST) {
-        int client_fd = accept(socket_fd, nullptr, nullptr);
-        auto params = (client_params *) malloc(sizeof(client_params));
+            params->memory_access_latency_table = memory_access_latency_table;
+            params->client_fd = client_fd;
+            params->client_index = i;
+            params->table = table;
 
-        params->memory_access_latency_table = memory_access_latency_table;
-        params->client_fd = client_fd;
-        params->client_index = i;
-        params->table = table;
+            printf("Connected to client %d\n", client_fd);
 
-        printf("Connected to client %d\n", client_fd);
-
-        pthread_t thread_id;
-        pthread_create(&thread_id, nullptr, thread_function, (void *) params);
-        threads[i++] = thread_id;
+            pthread_t thread_id;
+            pthread_create(&thread_id, nullptr, thread_function, (void *) params);
+            threads[i++] = thread_id;
+        }
+        for (auto i = 0; i < COM_NUM_REQUEST; i++) {
+            pthread_join(threads[i], nullptr);
+        }
+        saveTimes(memory_access_latency_table, COM_NUM_REQUEST);
     }
-    for (auto i = 0; i < COM_NUM_REQUEST; i++) {
-        pthread_join(threads[i], nullptr);
-    }
-    saveTimes(memory_access_latency_table, COM_NUM_REQUEST);
 }
 
 Server::~Server() {
