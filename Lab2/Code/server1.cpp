@@ -4,8 +4,8 @@
 #include <unistd.h>
 
 #include "common.h"
-
 #include "server.h"
+#include "timer.h"
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -15,6 +15,7 @@ void *handle_client(void *args) {
 
     int client_fd = params->client_fd;
     char **table = params->table;
+    double start, finish, elapsed;
 
     char msg[COM_BUFF_SIZE];
     read(client_fd, msg, COM_BUFF_SIZE);
@@ -23,7 +24,7 @@ void *handle_client(void *args) {
         printf("reading from client: %s\n", msg);
     }
 
-    // DO THINGS
+    GET_TIME(start);
     {
         ClientRequest request;
         char response[COM_BUFF_SIZE];
@@ -48,7 +49,9 @@ void *handle_client(void *args) {
         }
         pthread_mutex_unlock(&mutex);
     }
-    // END DO THINGS
+    GET_TIME(finish);
+    elapsed = finish - start;
+    params->memory_access_latency_table[params->client_index] = elapsed;
 
     close(client_fd);
 

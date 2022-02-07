@@ -18,6 +18,7 @@ Server::Server(int argc, char *argv[]) {
     long server_port = strtol(argv[3], nullptr, 10);
 
     table = (char **) malloc(table_size * sizeof(char *));
+    memory_access_latency_table = (double *) malloc(COM_NUM_REQUEST * sizeof(double));
 
     for (auto i = 0; i < table_size; i++) {
         table[i] = (char *) malloc(COM_BUFF_SIZE * sizeof(char));
@@ -47,22 +48,27 @@ Server::Server(int argc, char *argv[]) {
 }
 
 void Server::run(void *(thread_function) (void *args)) {
-    while (true) {
-//        while (threads.size() < COM_NUM_REQUEST) {
-            int client_fd = accept(socket_fd, nullptr, nullptr);
-            auto params = (client_params *) malloc(sizeof(client_params));
 
-            params->client_fd = client_fd;
-            params->table = table;
+    int i = 0;
+    while (i < COM_NUM_REQUEST) {
+        int client_fd = accept(socket_fd, nullptr, nullptr);
+        auto params = (client_params *) malloc(sizeof(client_params));
 
-            printf("Connected to client %d\n", client_fd);
-            printf("Attempt Number: %zu\n", threads.size());
+        params->memory_access_latency_table = memory_access_latency_table;
+        params->client_fd = client_fd;
+        params->client_index = i;
+        params->table = table;
 
-            pthread_t thread_id;
-            pthread_create(&thread_id, nullptr, thread_function, (void *) params);
-            threads.push_back(thread_id);
-//        }
+        printf("Connected to client %d\n", client_fd);
+
+        pthread_t thread_id;
+        pthread_create(&thread_id, nullptr, thread_function, (void *) params);
+        threads[i++] = thread_id;
     }
+    for (auto j = 0; j < i; j++) {
+        pthread_join(threads[j], nullptr);
+    }
+    saveTimes(memory_access_latency_table, COM_NUM_REQUEST);
 }
 
 Server::~Server() {
