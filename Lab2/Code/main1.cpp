@@ -27,12 +27,13 @@ void *single_mutex(void *args) {
     printf("reading from client: %s\n", msg);
 #endif
 
-    GET_TIME(start) {
-        ClientRequest request;
-        char response[COM_BUFF_SIZE];
+    ClientRequest request;
+    char response[COM_BUFF_SIZE];
 
-        ParseMsg(msg, &request);
+    ParseMsg(msg, &request);
 
+    GET_TIME(start);
+    {
         pthread_mutex_lock(&mutex);
 #if COM_IS_VERBOSE
         printf("%d locked\n", client_fd);
@@ -51,7 +52,7 @@ void *single_mutex(void *args) {
 #endif
         pthread_mutex_unlock(&mutex);
     }
-    GET_TIME(finish)
+    GET_TIME(finish);
     elapsed = finish - start;
     params->memory_access_latency_table[params->client_index] = elapsed;
 

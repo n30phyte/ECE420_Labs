@@ -27,5 +27,6 @@
         "%DOC%"
       ]
     }
-  ]
+  ],
+  "cmake.configureOnOpen": false
 }

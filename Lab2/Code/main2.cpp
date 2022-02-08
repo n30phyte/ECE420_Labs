@@ -27,12 +27,13 @@ void *multi_mutex(void *args) {
     printf("reading from client: %s\n", msg);
 #endif
 
-    GET_TIME(start) {
-        ClientRequest request;
-        char response[COM_BUFF_SIZE];
+    ClientRequest request;
+    char response[COM_BUFF_SIZE];
 
-        ParseMsg(msg, &request);
+    ParseMsg(msg, &request);
 
+    GET_TIME(start);
+    {
         pthread_mutex_lock(&mutex_table[request.pos]);
 #if COM_IS_VERBOSE
         printf("%d locked\n", client_fd);

@@ -1,0 +1,4 @@
+- In main1, the critical section is protected by a single mutex that locks the entire array
+- In main2, the critical section is protected by having an array of mutexes that each locks a single row of the array
+- In main3, the critical section is protected with a single RWLock that locks the entire array
+- In main2, the critical section is protected by having an array of RWLocks that each lock a single row of the data array

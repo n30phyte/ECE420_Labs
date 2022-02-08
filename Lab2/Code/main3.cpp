@@ -27,12 +27,13 @@ void *single_rwlock(void *args) {
     printf("reading from client: %s\n", msg);
 #endif
 
-    GET_TIME(start) {
-        ClientRequest request;
-        char response[COM_BUFF_SIZE];
+    ClientRequest request;
+    char response[COM_BUFF_SIZE];
 
-        ParseMsg(msg, &request);
+    ParseMsg(msg, &request);
 
+    GET_TIME(start);
+    {
         if (request.is_read) {
             pthread_rwlock_rdlock(&rwlock);
             getContent(response, request.pos, table);
@@ -45,7 +46,7 @@ void *single_rwlock(void *args) {
         }
         write(client_fd, response, COM_BUFF_SIZE);
     }
-    GET_TIME(finish)
+    GET_TIME(finish);
     elapsed = finish - start;
     params->memory_access_latency_table[params->client_index] = elapsed;
 
