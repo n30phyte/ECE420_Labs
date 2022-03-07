@@ -5,6 +5,8 @@ override CXXFLAGS += -std=c++11 -fpermissive -fopenmp -O2
 
 .PHONY: clean
 
+all: main datagen serialtester
+
 main: main.cpp IO.c IO.h timer.h
 	$(CXX) $(CXXFLAGS) main.cpp IO.c -o $@
 
@@ -12,7 +14,7 @@ datagen: datagen.c IO.c IO.h
 	$(CC) $(CFLAGS) datagen.c IO.c -o $@
 
 serialtester: datagen.c IO.c IO.h
-	$(CC) $(CFLAGS) serialtester.c IO.c -o $@
+	$(CC) $(CFLAGS) serialtester.c IO.c -lm -o $@
 
 clean:
-	rm -f main datagen serialtester
+	rm -f main datagen serialtester data_input data_output
