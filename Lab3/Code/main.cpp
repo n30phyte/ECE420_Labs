@@ -5,55 +5,55 @@
 #include "IO.h"
 #include "timer.h"
 
-int i, j, k, size;
-double **Au;
-double *X;
-double temp, error, Xnorm;
-int *index;
-void rref(double **Au, double *X, int size) {
-
-    /*Calculate the solution by serial code*/
-    index = (int *) malloc(size * sizeof(int));
-    for (i = 0; i < size; ++i)
-        index[i] = i;
-
-    if (size == 1)
-        X[0] = Au[0][1] / Au[0][0];
-    else {
-        /*Gaussian elimination*/
-        for (k = 0; k < size - 1; ++k) {
-            /*Pivoting*/
-            temp = 0;
-            for (i = k, j = 0; i < size; ++i)
-                if (temp < Au[index[i]][k] * Au[index[i]][k]) {
-                    temp = Au[index[i]][k] * Au[index[i]][k];
+void rref(double **G, double *X, int *index, int size) {
+    if (size == 1) {
+        X[0] = G[0][1] / G[0][0];
+    } else {
+        // Gaussian Elimination
+        for (int k = 0; k < size - 1; ++k) {
+            // Pivot
+            // Pivot Pt 1: Find Max
+            double max_val = 0;
+            int j = 0;
+            #pragma omp parallel for reduction(max:max_val)
+            for (int i = k; i < size; ++i) {
+                if (max_val < G[index[i]][k] * G[index[i]][k]) {
+                    max_val = G[index[i]][k] * G[index[i]][k];
                     j = i;
                 }
-            if (j != k) /*swap*/ {
-                i = index[j];
+            }
+
+            // Pivot Pt 2: Swap
+            if (j != k) {
+                int i = index[j];
                 index[j] = index[k];
                 index[k] = i;
             }
-            /*calculating*/
-            for (i = k + 1; i < size; ++i) {
-                temp = Au[index[i]][k] / Au[index[k]][k];
-                for (j = k; j < size + 1; ++j)
-                    Au[index[i]][j] -= Au[index[k]][j] * temp;
-            }
-        }
-        /*Jordan elimination*/
-        for (k = size - 1; k > 0; --k) {
-            for (i = k - 1; i >= 0; --i) {
-                temp = Au[index[i]][k] / Au[index[k]][k];
-                Au[index[i]][k] -= temp * Au[index[k]][k];
-                Au[index[i]][size] -= temp * Au[index[k]][size];
+
+            // Elimination
+#pragma omp parallel for 
+            for (int i = k + 1; i < size; ++i) {
+                double temp = G[index[i]][k] / G[index[k]][k];
+                for (int j = k; j < size + 1; ++j)
+                    G[index[i]][j] -= G[index[k]][j] * temp;
             }
         }
 
-        /*solution*/
-        for (k = 0; k < size; ++k) {
-            X[k] = Au[index[k]][size] / Au[index[k]][k];
-            printf("Print matrix result\n %lf", X[k]);
+        double **D = G;
+
+        // Jordan Elimination
+        for (int k = size - 1; k > 0; --k) {
+#pragma omp parallel for
+            for (int i = k - 1; i >= 0; --i) {
+                double ratio = D[index[i]][k] / D[index[k]][k];
+                D[index[i]][k] -= ratio * D[index[k]][k];
+                D[index[i]][size] -= ratio * D[index[k]][size];
+            }
+        }
+
+        // Save solution
+        for (int i = 0; i < size; i++) {
+            X[i] = D[index[i]][size] / D[index[i]][i];
         }
     }
 }
@@ -76,12 +76,15 @@ int main(int argc, char *argv[]) {
     LoadInput(&G, &size);
 
     double *X = CreateVec(size);
+    int *index = new int[size];
+    for (int i = 0; i < size; ++i)
+        index[i] = i;
 
     double start, finish;
 
     GET_TIME(start);
     {
-        rref(G, X, size);
+        rref(G, X, index, size);
     }
     GET_TIME(finish);
 
