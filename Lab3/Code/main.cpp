@@ -15,23 +15,44 @@ void rref(double **G, double *X, int *index, int size) {
             // Pivot Pt 1: Find Max
             double max_val = 0;
             int j = 0;
-            #pragma omp parallel for reduction(max:max_val)
-            for (int i = k; i < size; ++i) {
-                if (max_val < G[index[i]][k] * G[index[i]][k]) {
-                    max_val = G[index[i]][k] * G[index[i]][k];
-                    j = i;
+
+            // Serial
+            // for (int i = k; i < size; ++i) {
+            //     if (max_val < G[index[i]][k] * G[index[i]][k]) {
+            //         max_val = G[index[i]][k] * G[index[i]][k];
+            //         j = i;
+            //     }
+            // }
+
+#pragma omp parallel shared(max_val, j)
+            {
+                int max_local = 0;
+                int j_local = j;
+#pragma omp for
+                for (int i = k; i < size; ++i) {
+                    if (max_local < G[index[i]][k] * G[index[i]][k]) {
+                        max_local = G[index[i]][k] * G[index[i]][k];
+                        j_local = i;
+                    }
+                }
+                if (max_val < max_local) {
+#pragma omp critical
+                    if (max_val < max_local) {
+                        max_val = max_local;
+                        j = j_local;
+                    }
                 }
             }
 
             // Pivot Pt 2: Swap
             if (j != k) {
-                int i = index[j];
+                int temp_row = index[j];
                 index[j] = index[k];
-                index[k] = i;
+                index[k] = temp_row;
             }
 
             // Elimination
-#pragma omp parallel for 
+#pragma omp parallel for
             for (int i = k + 1; i < size; ++i) {
                 double temp = G[index[i]][k] / G[index[k]][k];
                 for (int j = k; j < size + 1; ++j)
@@ -51,7 +72,8 @@ void rref(double **G, double *X, int *index, int size) {
             }
         }
 
-        // Save solution
+// Save solution
+#pragma omp parallel for
         for (int i = 0; i < size; i++) {
             X[i] = D[index[i]][size] / D[index[i]][i];
         }

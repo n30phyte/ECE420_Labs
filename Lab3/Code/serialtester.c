@@ -80,7 +80,6 @@ int main(int argc, char *argv[]) {
     Xnorm = 0;
     for (i = 0; i < size; ++i) {
         fscanf(fp, "%lf\t", &temp);
-        printf("Diff %lf %lf\n", X[i] / temp);
         error += (temp - X[i]) * (temp - X[i]);
         Xnorm += X[i] * X[i];
     }

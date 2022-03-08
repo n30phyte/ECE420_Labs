@@ -1,3 +1,4 @@
+make clean
 make all
 ./datagen -s 400
 ./main 6
