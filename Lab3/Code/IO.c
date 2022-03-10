@@ -13,18 +13,18 @@
  *
  * @return Error code, 0 for OK, anything otherwise
  */
-int LoadInput(double ***A, int *size){
-    FILE* ip;
-    int i,j;
+int LoadInput(double ***A, int *size) {
+    FILE *ip;
+    int i, j;
 
-    if ((ip = fopen("data_input","r")) == NULL){
-            printf("error opening the input data.\n");
-            return 1;
+    if ((ip = fopen("data_input", "r")) == NULL) {
+        printf("error opening the input data.\n");
+        return 1;
     }
     fscanf(ip, "%d\n\n", size);
     (*A) = CreateMat(*size, (*size) + 1);
-    for (i = 0; i < *size; ++i){
-        for(j = 0; j < *size; ++j)
+    for (i = 0; i < *size; ++i) {
+        for (j = 0; j < *size; ++j)
             fscanf(ip, "%lf\t", &(*A)[i][j]);
         fscanf(ip, "\n");
     }
@@ -46,12 +46,12 @@ int LoadInput(double ***A, int *size){
  *
  * @return Error code, 0 for OK, anything otherwise
  */
-int SaveOutput(double* x, int size, double Time){
+int SaveOutput(double *x, int size, double Time) {
 
-    FILE* op;
+    FILE *op;
     int i;
 
-    if ((op = fopen("data_output","w")) == NULL){
+    if ((op = fopen("data_output", "w")) == NULL) {
         printf("Error opening the output file.\n");
         return 1;
     }
@@ -64,8 +64,7 @@ int SaveOutput(double* x, int size, double Time){
     return 0;
 }
 
-
-double** CreateMat(int NumRow, int NumCol){
+double **CreateMat(int NumRow, int NumCol) {
     /* Allocate memory for an array
     -----
     Input:
@@ -76,30 +75,30 @@ double** CreateMat(int NumRow, int NumCol){
         ** A    pointer to the new int array
     */
     int i;
-    double ** A;
+    double **A;
 
-    A = malloc(NumRow * sizeof(double*));
-    for (i = 0; i < NumRow; ++i){
-        A[i] = malloc(NumCol * sizeof(double));
+    A = (double **) malloc(NumRow * sizeof(double *));
+    for (i = 0; i < NumRow; ++i) {
+        A[i] = (double *) malloc(NumCol * sizeof(double));
     }
     return A;
 }
- 
-int DestroyMat(double** A, int NumRow){
+
+int DestroyMat(double **A, int NumRow) {
     /* Free the memory
     -----
     Input:
         NumRow    Number of rows
     */
     int i;
-    for (i = 0; i < NumRow; ++i){
+    for (i = 0; i < NumRow; ++i) {
         free(A[i]);
     }
     free(A);
     return 0;
 }
 
-int PrintMat(double** A, int NumRow, int NumCol){
+int PrintMat(double **A, int NumRow, int NumCol) {
     /* Print an array
     -----
     Input:
@@ -108,8 +107,8 @@ int PrintMat(double** A, int NumRow, int NumCol){
         NumCol    Number of columns
     */
     int i, j;
-    for (i = 0; i < NumRow; ++i){
-        for (j = 0; j < NumCol; ++j){
+    for (i = 0; i < NumRow; ++i) {
+        for (j = 0; j < NumCol; ++j) {
             printf("%f\t", A[i][j]);
         }
         printf("\n");
@@ -117,21 +116,20 @@ int PrintMat(double** A, int NumRow, int NumCol){
     return 0;
 }
 
-double* CreateVec(int size){
-    double *b;
-    b =  malloc(size * sizeof(double));
+double *CreateVec(int size) {
+    double *b = (double *) malloc(size * sizeof(double));
     return b;
 }
 
-int PrintVec(double* b, int size){
+int PrintVec(double *b, int size) {
     int i;
-    for (i = 0; i< size; ++i){
+    for (i = 0; i < size; ++i) {
         printf("%f\n", b[i]);
     }
     return 0;
 }
 
-int DestroyVec(double* b){
+int DestroyVec(double *b) {
     free(b);
     return 0;
 }

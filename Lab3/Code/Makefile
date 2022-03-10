@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
-override CFLAGS += -std=c11 -fopenmp -O2
-override CXXFLAGS += -std=c++11 -fpermissive -fopenmp -O2
+override CFLAGS += -std=gnu11 -fopenmp -O2
+override CXXFLAGS += -std=gnu++11 -fpermissive -fopenmp -O2
 
 .PHONY: clean
 
