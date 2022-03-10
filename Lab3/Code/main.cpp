@@ -1,5 +1,6 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "openmp-use-default-none"
+#include <cmath>
 #include <cstdio>
 #include <omp.h>
 #include <string>
@@ -7,7 +8,7 @@
 #include "IO.h"
 #include "timer.h"
 
-void rref(double **G, double *X, const int size, const int num_threads) {
+void rref(double **G, double *X, const int size) {
     if (size == 1) {
         X[0] = G[0][1] / G[0][0];
     } else {
@@ -21,29 +22,28 @@ void rref(double **G, double *X, const int size, const int num_threads) {
 
             // Serial
             // for (int i = k; i < size; ++i) {
-            //     if (max_val < G[index[i]][k] * G[index[i]][k]) {
-            //         max_val = G[index[i]][k] * G[index[i]][k];
+            //     if (max_val < G[i][k] * G[i][k]) {
+            //         max_val = G[i][k] * G[i][k];
             //         j = i;
             //     }
             // }
 
 #pragma omp parallel shared(max_val, j)
             {
-                int max_local = 0;
-                int j_local = j;
+                double max_local = 0;
+                int j_local;
 #pragma omp for
                 for (int i = k; i < size; ++i) {
-                    if (max_local < G[i][k] * G[i][k]) {
-                        max_local = G[i][k] * G[i][k];
+                    if (max_local < std::fabs(G[i][k])) {
+                        max_local = std::fabs(G[i][k]);
                         j_local = i;
                     }
                 }
-                if (max_val < max_local) {
+
 #pragma omp critical
-                    if (max_val < max_local) {
-                        max_val = max_local;
-                        j = j_local;
-                    }
+                if (max_val < max_local) {
+                    max_val = max_local;
+                    j = j_local;
                 }
             }
 
@@ -57,9 +57,9 @@ void rref(double **G, double *X, const int size, const int num_threads) {
             // Elimination
 #pragma omp parallel for
             for (int i = k + 1; i < size; ++i) {
-                double temp = G[i][k] / G[k][k];
-                for (int j = k; j < size + 1; ++j)
-                    G[i][j] -= G[k][j] * temp;
+                double ratio = G[i][k] / G[k][k];
+                for (int l = k; l < size + 1; ++l)
+                    G[i][l] -= G[k][l] * ratio;
             }
         }
 
@@ -104,11 +104,10 @@ int main(int argc, char *argv[]) {
 
     double start, finish;
 
-    GET_TIME(start);
-    {
-        rref(G, X, size, num_threads);
+    GET_TIME(start) {
+        rref(G, X, size);
     }
-    GET_TIME(finish);
+    GET_TIME(finish)
 
     SaveOutput(X, size, finish - start);
 }
