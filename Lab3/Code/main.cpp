@@ -1,5 +1,3 @@
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "openmp-use-default-none"
 #include <cmath>
 #include <cstdio>
 #include <omp.h>
@@ -19,14 +17,6 @@ void rref(double **G, double *X, const int size) {
             // Pivot Pt 1: Find Max
             double max_val = 0;
             int j = 0;
-
-            // Serial
-            // for (int i = k; i < size; ++i) {
-            //     if (max_val < G[i][k] * G[i][k]) {
-            //         max_val = G[i][k] * G[i][k];
-            //         j = i;
-            //     }
-            // }
 
 #pragma omp parallel shared(max_val, j)
             {
@@ -111,5 +101,3 @@ int main(int argc, char *argv[]) {
 
     SaveOutput(X, size, finish - start);
 }
-
-#pragma clang diagnostic pop

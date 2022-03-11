@@ -35,19 +35,19 @@ Example:
     generate 1000 by 1000 non singular double matrix and a vector b with most elements between -10 and 10 in "./data_input", and print the result on the screen.
 */
 
+#include "IO.h"
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
-#include "IO.h"
+#include <unistd.h>
 
 #define DECIMAL 100.0
 
-int MatMul(int, double**, double**, double**);
-int MatGen(int, double**, double);
-int GenPerm(int, double**);
+int MatMul(int, double **, double **, double **);
+int MatGen(int, double **, double);
+int GenPerm(int, double **);
 
-int main (int argc, char* argv[]){   
+int main(int argc, char *argv[]) {
     int i, j, option;
     int size = 100;
     int b_print = 0;
@@ -55,46 +55,56 @@ int main (int argc, char* argv[]){
     double **A, **T, **S;
     double *b;
     double temp;
-    char* OUTPATH = "data_input";
-    FILE* fp;
+    char *OUTPATH = "data_input";
+    FILE *fp;
 
     srand(time(NULL));
 
     while ((option = getopt(argc, argv, "s:b:po:")) != -1)
-        switch(option){
-            case 's': size = strtol(optarg, NULL, 10); break;
-            case 'b': range = strtol(optarg, NULL, 10);break;
-            case 'p': b_print = 1; break;
-            case 'o': OUTPATH = optarg; break;
-            case '?': printf("Unexpected Options. \n"); return -1;
+        switch (option) {
+            case 's':
+                size = strtol(optarg, NULL, 10);
+                break;
+            case 'b':
+                range = strtol(optarg, NULL, 10);
+                break;
+            case 'p':
+                b_print = 1;
+                break;
+            case 'o':
+                OUTPATH = optarg;
+                break;
+            case '?':
+                printf("Unexpected Options. \n");
+                return -1;
         }
-    
+
     /*Generate the data*/
     A = CreateMat(size, size);
     T = CreateMat(size, size);
     S = CreateMat(size, size);
     b = malloc(size * sizeof(double));
     for (i = 0; i < size; ++i)
-        for (j = 0; j < size; ++j){
+        for (j = 0; j < size; ++j) {
             A[i][j] = 0;
             T[i][j] = 0;
         }
-    MatGen(size, T, (double)range);
+    MatGen(size, T, (double) range);
     GenPerm(size, A);
     MatMul(size, T, A, S);
-    for (i = 0; i < size; ++i){
-        temp = (double)(random() % (int)(range * DECIMAL)) / DECIMAL;
+    for (i = 0; i < size; ++i) {
+        temp = (double) (random() % (int) (range * DECIMAL)) / DECIMAL;
         if (random() % 2)
             temp *= -1;
         b[i] = temp;
     }
     /*Output the data*/
-    if ((fp = fopen(OUTPATH,"w")) == NULL){
+    if ((fp = fopen(OUTPATH, "w")) == NULL) {
         printf("Fail to open a file to save the data. \n");
         return -2;
     }
     fprintf(fp, "%d\n\n", size);
-    for (i = 0; i < size; ++i){
+    for (i = 0; i < size; ++i) {
         for (j = 0; j < size; ++j)
             fprintf(fp, "%lf\t", S[i][j]);
         fprintf(fp, "\n");
@@ -104,7 +114,7 @@ int main (int argc, char* argv[]){
         fprintf(fp, "%lf\n", b[i]);
     fclose(fp);
     /*Print the result if neccesary*/
-    if (b_print){
+    if (b_print) {
         printf("The problem size is %d.\n", size);
         printf("============\n The A is \n============\n");
         PrintMat(S, size, size);
@@ -118,20 +128,20 @@ int main (int argc, char* argv[]){
     return 0;
 }
 
-int MatGen(int n, double** S, double range){
-    int i,j;
+int MatGen(int n, double **S, double range) {
+    int i, j;
     double temp;
     /*Generate a random matrix*/
-    for (i = 0; i < n; ++i){
-        for (j = 0; j < n; ++j){
-            temp = (double)(random() % (int)(DECIMAL * range)) / DECIMAL;
+    for (i = 0; i < n; ++i) {
+        for (j = 0; j < n; ++j) {
+            temp = (double) (random() % (int) (DECIMAL * range)) / DECIMAL;
             if (random() % 2)
                 temp *= -1;
             S[i][j] = temp;
         }
     }
     /*Make it row dominant*/
-    for (i = 0; i < n; ++i){
+    for (i = 0; i < n; ++i) {
         temp = 0;
         for (j = 0; j < n; ++j)
             if (S[i][i] * S[i][j] > 0)
@@ -143,19 +153,19 @@ int MatGen(int n, double** S, double range){
     return 0;
 }
 
-int MatMul(int n, double** A, double** T, double** S){
+int MatMul(int n, double **A, double **T, double **S) {
     int i, j, k;
     for (i = 0; i < n; ++i)
-        for (j = 0; j < n; ++j){
-            S[i][j]=0;
+        for (j = 0; j < n; ++j) {
+            S[i][j] = 0;
             for (k = 0; k < n; ++k)
                 S[i][j] += A[i][k] * T[k][j];
         }
     return 0;
 }
 
-int GenPerm(int n, double** A){
-    int* flag;
+int GenPerm(int n, double **A) {
+    int *flag;
     int i, j, k;
     int remain;
     int index;
@@ -164,16 +174,17 @@ int GenPerm(int n, double** A){
     for (i = 0; i < n; ++i)
         flag[i] = 0;
 
-    for (i = 0; i < n; ++i){
+    for (i = 0; i < n; ++i) {
         index = random() % remain + 1;
-        j = 0; k = -1;
-        while (j < index){
+        j = 0;
+        k = -1;
+        while (j < index) {
             ++k;
             if (flag[k] == 0)
                 ++j;
         }
         A[i][k] = 1.0;
-        flag[k] = 1; 
+        flag[k] = 1;
         --remain;
     }
     free(flag);
