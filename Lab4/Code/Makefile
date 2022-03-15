@@ -1,0 +1,20 @@
+CC = gcc
+CXX = g++
+override CFLAGS += -std=gnu11 -fopenmp -O2
+override CXXFLAGS += -std=gnu++11 -fpermissive -fopenmp -O2
+
+.PHONY: clean
+
+all: main datagen serialtester
+
+main: main.cpp IO.c IO.h timer.h
+	$(CXX) $(CXXFLAGS) main.cpp IO.c -o $@
+
+datagen: datagen.c IO.c IO.h
+	$(CC) $(CFLAGS) datagen.c IO.c -o $@
+
+serialtester: datagen.c IO.c IO.h
+	$(CC) $(CFLAGS) serialtester.c IO.c -lm -o $@
+
+clean:
+	rm -f main datagen serialtester data_input data_output
