@@ -35,7 +35,7 @@ Example:
     >datatrim
     fetch the graph from the original, add links for the nodes with no out going links and store the result in "./data_input", 
    
-    >datagen -b 10000 -n
+    >datatrim -b 10000 -n
     fetch the graph with index less than 10000 and store it in "data_input"
 
 Source data is from:

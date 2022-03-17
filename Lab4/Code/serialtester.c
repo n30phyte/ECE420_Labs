@@ -16,8 +16,7 @@
 */
 #define LAB4_EXTEND
 
-#include "Lab4_IO.h"
-#include <math.h>
+#include "IO.h"
 #include <stdio.h>
 #include <stdlib.h>
 

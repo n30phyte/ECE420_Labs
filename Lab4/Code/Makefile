@@ -10,10 +10,10 @@ all: main datagen serialtester
 main: main.cpp IO.c IO.h timer.h
 	$(CXX) $(CXXFLAGS) main.cpp IO.c -o $@
 
-datagen: datagen.c IO.c IO.h
-	$(CC) $(CFLAGS) datagen.c IO.c -o $@
+datatrim: datrim.c
+	$(CC) $(CFLAGS) datagen.c -o $@
 
-serialtester: datagen.c IO.c IO.h
+serialtester: serialtester.c IO.c IO.h
 	$(CC) $(CFLAGS) serialtester.c IO.c -lm -o $@
 
 clean:
