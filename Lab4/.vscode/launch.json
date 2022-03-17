@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "mpicxx - Build and debug Lab 4",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/Code/main",
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}",
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "preLaunchTask": "mpicc build Lab 4"
+    }
+  ]
+}

@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
   myrank = MPI::COMM_WORLD.Get_rank();
 
   printf("Hello from process %d out of %d\n", myrank, npes);
-  MPI_Finalize();
+  MPI::Finalize();
   printf("Hello from process %d out of %d\n", myrank, npes);
   return 0;
 }
