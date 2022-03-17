@@ -1,20 +1,22 @@
 CC = gcc
 CXX = g++
+MPICC = mpicc
+MPICXX = mpicxx
 override CFLAGS += -std=gnu11 -fopenmp -O2
 override CXXFLAGS += -std=gnu++11 -fpermissive -fopenmp -O2
 
 .PHONY: clean
 
-all: main datagen serialtester
+all: main datatrim serialtester
 
 main: main.cpp IO.c IO.h timer.h
-	$(CXX) $(CXXFLAGS) main.cpp IO.c -o $@
+	$(MPICXX) $(CXXFLAGS) main.cpp IO.c -o $@
 
-datatrim: datrim.c
-	$(CC) $(CFLAGS) datagen.c -o $@
+datatrim: datatrim.c
+	$(CC) $(CFLAGS) datatrim.c -o $@
 
 serialtester: serialtester.c IO.c IO.h
-	$(CC) $(CFLAGS) serialtester.c IO.c -lm -o $@
+	$(CC) $(CFLAGS) serialtester.c -lm -o $@
 
 clean:
-	rm -f main datagen serialtester data_input data_output
+	rm -f main datatrim serialtester data_input data_output
