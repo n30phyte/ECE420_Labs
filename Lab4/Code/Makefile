@@ -2,8 +2,8 @@ CC = gcc
 CXX = g++
 MPICC = mpicc
 MPICXX = mpicxx
-override CFLAGS += -std=gnu11 -fopenmp -O2
-override CXXFLAGS += -std=gnu++11 -fpermissive -fopenmp -O2
+override CFLAGS += -std=gnu11 -O2
+override CXXFLAGS += -std=gnu++11 -fpermissive -O2
 
 .PHONY: clean
 
