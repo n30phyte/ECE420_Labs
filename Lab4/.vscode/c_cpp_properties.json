@@ -1,0 +1,13 @@
+{
+  "configurations": [
+    {
+      "name": "Michael",
+      "includePath": ["${workspaceFolder}/**", "/usr/include/mpich-x86_64"],
+      "compilerPath": "/usr/lib64/mpich/bin/mpicxx",
+      "cStandard": "gnu11",
+      "cppStandard": "gnu++11",
+      "intelliSenseMode": "gcc-x64"
+    }
+  ],
+  "version": 4
+}
