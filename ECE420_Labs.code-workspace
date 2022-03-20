@@ -5,5 +5,15 @@
     { "path": "Lab3" },
     { "path": "Lab4" }
   ],
-  "settings": {}
+  "settings": {
+    "files.associations": {
+      "fstream": "cpp",
+      "cstdio": "cpp",
+      "stdio.h": "c",
+      "utils.h": "c",
+      "new": "cpp",
+      "math.h": "c",
+      "stdlib.h": "c"
+    }
+  }
 }

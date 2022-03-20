@@ -1,6 +1,8 @@
 #include "utils.h"
 
+#include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int node_init(struct node **nodehead, int start, int end) {
   FILE *ip;
