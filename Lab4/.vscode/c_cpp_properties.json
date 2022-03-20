@@ -1,9 +1,17 @@
 {
   "configurations": [
     {
-      "name": "Michael",
+      "name": "Fedora",
       "includePath": ["${workspaceFolder}/**", "/usr/include/mpich-x86_64"],
       "compilerPath": "/usr/lib64/mpich/bin/mpicxx",
+      "cStandard": "gnu11",
+      "cppStandard": "gnu++11",
+      "intelliSenseMode": "gcc-x64"
+    },
+    {
+      "name": "Ubuntu",
+      "includePath": ["${workspaceFolder}/**", "/usr/include/x86_64-linux-gnu/mpich/"],
+      "compilerPath": "/usr/bin/mpicxx",
       "cStandard": "gnu11",
       "cppStandard": "gnu++11",
       "intelliSenseMode": "gcc-x64"
