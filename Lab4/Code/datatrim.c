@@ -17,10 +17,13 @@ Synopsis:
 
 -----
 Options:
-    -b    specify the upper bound index to be included in the original data
-(default 5300, generating data with 1112 nodes) -i    specify the input path
-(default "./web-Stanford.txt") -o    specify the output path prefix (default
-"./data_input") -n    tag to shut down the auto link addition for the nodes that
+-b    specify the upper bound index to be included in the original data
+(default 5300, generating data with 1112 nodes)
+-i    specify the input path
+(default "./web-Stanford.txt")
+-o    specify the output path prefix (default
+"./data_input")
+-n    tag to shut down the auto link addition for the nodes that
 have no out going links
 
 -----
