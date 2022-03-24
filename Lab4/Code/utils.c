@@ -13,7 +13,7 @@ int node_init(struct node **nodehead, int start, int end) {
   int num_nodes = end - start;
 
   // deal with the meta data and allocate space
-  (*nodehead) = malloc(num_nodes * sizeof(struct node));
+  (*nodehead) = (struct node *)malloc(num_nodes * sizeof(struct node));
   if ((ip = fopen("data_input_meta", "r")) == NULL) {
     printf("Error opening the data_input_meta file.\n");
     return -1;
@@ -30,14 +30,14 @@ int node_init(struct node **nodehead, int start, int end) {
     }
     (*nodehead)[i - start].num_in_links = num_in;
     (*nodehead)[i - start].num_out_links = num_out;
-    (*nodehead)[i - start].inlinks = malloc(num_in * sizeof(int));
+    (*nodehead)[i - start].inlinks = (int *)malloc(num_in * sizeof(int));
   }
   fclose(ip);
   if (i < end) { // initial the dampling nodes as well
     for (; i < end; ++i) {
       (*nodehead)[i - start].num_in_links = 0;
       (*nodehead)[i - start].num_out_links = nodecount;
-      (*nodehead)[i - start].inlinks = malloc(sizeof(int));
+      (*nodehead)[i - start].inlinks = (int *)malloc(sizeof(int));
     }
   }
   // Load the link informations
@@ -45,7 +45,7 @@ int node_init(struct node **nodehead, int start, int end) {
     printf("Error opening the data_input_link file.\n");
     return -3;
   }
-  index = malloc(num_nodes * sizeof(int));
+  index = (int *)malloc(num_nodes * sizeof(int));
   for (i = 0; i < num_nodes; ++i) { index[i] = 0; }
   while (!feof(ip)) {
     fscanf(ip, "%d\t%d\n", &src, &dst);
