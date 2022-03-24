@@ -1,4 +1,5 @@
 
+#include "IO.h"
 #include "timer.h"
 #include "utils.h"
 
@@ -24,7 +25,7 @@ void serialmain() {
   // Adjust the threshold according to the problem size
   double cst_adapted_threshold = THRESHOLD;
 
-  node *nodehead, *local_nodehead;
+  node *nodehead;
   node_init(&nodehead, 0, nodecount);
   // initialize variables
   double *r = new double[nodecount];
@@ -46,29 +47,36 @@ void serialmain() {
   int comm_sz;
   MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
 
+  int local_nodecount = (nodecount / comm_sz);
+
+  double *local_r = new double[local_nodecount];
+  double *local_contribution = new double[local_nodecount];
+
   GET_TIME(start);
   do {
     ++iterationcount;
-    vec_cp(r, r_pre, nodecount);
     // update the value
-    int local_nodecount = (nodecount / comm_sz);
-    int wtf[4] = {0, 2500, 5000, 7500};
-    int wtf2[4] = {2500, 5000, 7500, 10000};
+    vec_cp(r, r_pre, nodecount);
 
-    for (int i = wtf[my_rank]; i < wtf2[my_rank]; ++i) {
-      r[i] = 0;
-      for (int j = 0; j < nodehead[i].num_in_links; ++j) {
-        r[i] += contribution[nodehead[i].inlinks[j]];
+    for (int i = 0; i < local_nodecount; ++i) {
+      local_r[i] = 0;
+      for (int j = 0; j < nodehead[i + local_nodecount * my_rank].num_in_links;
+           ++j) {
+        local_r[i] +=
+            contribution[nodehead[i + local_nodecount * my_rank].inlinks[j]];
       }
-      r[i] += damp_const;
+      local_r[i] += damp_const;
     }
     // update and broadcast the contribution
-    for (int i = wtf[my_rank]; i < wtf2[my_rank]; ++i) {
-      contribution[i] = r[i] / nodehead[i].num_out_links * DAMPING_FACTOR;
-      // MPI_Gatherv
+    for (int i = 0; i < local_nodecount; ++i) {
+      local_contribution[i] = local_r[i] /
+          nodehead[i + local_nodecount * my_rank].num_out_links *
+          DAMPING_FACTOR;
     }
-
-    // MPI_Reduce();
+    MPI_Allgather(local_contribution, local_nodecount, MPI_DOUBLE, contribution,
+                  local_nodecount, MPI_DOUBLE, MPI_COMM_WORLD);
+    MPI_Allgather(local_r, local_nodecount, MPI_DOUBLE, r, local_nodecount,
+                  MPI_DOUBLE, MPI_COMM_WORLD);
   } while (rel_error(r, r_pre, nodecount) >= EPSILON);
   GET_TIME(end);
   printf("Program converged at %d th iteration.\nElapsed time %f.\n",
@@ -77,53 +85,12 @@ void serialmain() {
   // post processing
   node_destroy(nodehead, nodecount);
 
+  if (my_rank == 0) { SaveOutput(r, nodecount, end - start); }
+
   delete[] r;
+  delete[] local_r;
   delete[] r_pre;
   delete[] contribution;
-}
-
-void mpitest() {
-  const int MAX_STRING = 100;
-
-  char greeting[MAX_STRING]; /* String storing message */
-  int comm_sz;               /* Number of processes    */
-  int my_rank;
-  /* Get the number of processes */
-  MPI_Comm_size(MPI_COMM_WORLD, &comm_sz);
-
-  /* Get my rank among all the processes */
-  MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
-
-  int in_nodes[2];
-  int *out_nodes_fake;
-
-  int out_nodes_true[8] = {0, 1, 2, 3, 4, 5, 6, 7};
-  if (my_rank == 0) {
-    MPI_Scatter(out_nodes_true, 2, MPI_INT, in_nodes, 8, MPI_INT, 0,
-                MPI_COMM_WORLD);
-  } else {
-    MPI_Scatter(out_nodes_fake, 2, MPI_INT, in_nodes, 8, MPI_INT, 0,
-                MPI_COMM_WORLD);
-  }
-  printf("Greetings from process %d, my element is %d !\n", my_rank,
-         in_nodes[0]);
-
-  // if (my_rank != 0) {
-  //   /* Create message */
-  //   sprintf(greeting, "Greetings from process %d of %d!", my_rank, comm_sz);
-  //   /* Send message to process 0 */
-  //   MPI_Send(greeting, strlen(greeting) + 1, MPI_CHAR, 0, 0, MPI_COMM_WORLD);
-  // } else {
-  //   /* Print my message */
-  //   printf("Greetings from master process %d of %d!\n", my_rank, comm_sz);
-  //   int q;
-  //   for (q = 1; q < comm_sz; q++) {
-  //     /* Receive message from process q */
-  //     MPI_Recv(greeting, MAX_STRING, MPI_CHAR, q, 0, MPI_COMM_WORLD,
-  //              MPI_STATUS_IGNORE);
-  //     /* Print message from process q */
-  //     printf("%s\n", greeting);
-  //   }
 }
 
 int main(int argc, char *argv[]) {
