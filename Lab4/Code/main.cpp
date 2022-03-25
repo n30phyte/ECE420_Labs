@@ -3,16 +3,46 @@
 #include "timer.h"
 #include "utils.h"
 
-#include <algorithm>
-#include <cstdio>
-#include <fstream>
-#include <iostream>
 #include <mpi.h>
 
-#define EPSILON 0.00001
-#define DAMPING_FACTOR 0.85
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <numeric>
+#include <vector>
 
-#define THRESHOLD 0.0001
+const double EPSILON = 0.00001;
+const double DAMPING_FACTOR = 0.85;
+
+const double THRESHOLD = 0.0001;
+
+std::vector<int> generate_nodecounts(int total_nodecount, int workers) {
+  std::vector<int> node_counts;
+
+  for (auto i = 0; i < workers; i++) {
+    node_counts.push_back(total_nodecount / workers);
+  }
+
+  if ((total_nodecount % workers) > 0) {
+    for (int i = 0; i < (total_nodecount % workers); i++) { node_counts[i]++; }
+  }
+
+  return node_counts;
+}
+
+std::vector<int> exclusive_scan(const std::vector<int> &node_counts) {
+  std::vector<int> displacements;
+
+  displacements.resize(node_counts.size());
+
+  std::partial_sum(node_counts.begin(), node_counts.end(),
+                   displacements.begin(), std::plus<int>());
+
+  displacements.insert(displacements.begin(), 1, 0);
+  displacements.pop_back();
+
+  return displacements;
+}
 
 void pagerank() {
 
@@ -36,10 +66,13 @@ void pagerank() {
   double damping_constant = (1.0 - DAMPING_FACTOR) / nodecount;
 
   int iteration_counter = 0;
-  int my_rank = MPI::COMM_WORLD.Get_rank();
-  int comm_sz = MPI::COMM_WORLD.Get_size();
+  int worker_rank = MPI::COMM_WORLD.Get_rank();
+  int total_workers = MPI::COMM_WORLD.Get_size();
 
-  int local_nodecount = (nodecount / comm_sz);
+  std::vector<int> node_counts = generate_nodecounts(nodecount, total_workers);
+  std::vector<int> displacements = exclusive_scan(node_counts);
+
+  int local_nodecount = node_counts[worker_rank];
 
   double *local_r = new double[local_nodecount];
   double *local_contribution = new double[local_nodecount];
@@ -54,25 +87,28 @@ void pagerank() {
 
     for (int i = 0; i < local_nodecount; ++i) {
       local_r[i] = 0;
-      for (int j = 0; j < nodehead[i + local_nodecount * my_rank].num_in_links;
+
+      for (int j = 0; j < nodehead[i + displacements[worker_rank]].num_in_links;
            ++j) {
         local_r[i] +=
-            contribution[nodehead[i + local_nodecount * my_rank].inlinks[j]];
+            contribution[nodehead[i + displacements[worker_rank]].inlinks[j]];
       }
       local_r[i] += damping_constant;
     }
     // update and broadcast the contribution
     for (int i = 0; i < local_nodecount; ++i) {
       local_contribution[i] = local_r[i] /
-          nodehead[i + local_nodecount * my_rank].num_out_links *
+          nodehead[i + displacements[worker_rank]].num_out_links *
           DAMPING_FACTOR;
     }
 
-    MPI::COMM_WORLD.Allgather(local_contribution, local_nodecount, MPI_DOUBLE,
-                              contribution, local_nodecount, MPI_DOUBLE);
+    MPI::COMM_WORLD.Allgatherv(local_contribution, local_nodecount, MPI_DOUBLE,
+                               contribution, node_counts.data(),
+                               displacements.data(), MPI_DOUBLE);
 
-    MPI::COMM_WORLD.Allgather(local_r, local_nodecount, MPI_DOUBLE, r,
-                              local_nodecount, MPI_DOUBLE);
+    MPI::COMM_WORLD.Allgatherv(local_r, local_nodecount, MPI_DOUBLE, r,
+                               node_counts.data(), displacements.data(),
+                               MPI_DOUBLE);
 
   } while (rel_error(r, r_pre, nodecount) >= EPSILON);
   GET_TIME(end);
@@ -85,7 +121,7 @@ void pagerank() {
   // post processing
   node_destroy(nodehead, nodecount);
 
-  if (my_rank == 0) { SaveOutput(r, nodecount, end - start); }
+  if (worker_rank == 0) { SaveOutput(r, nodecount, end - start); }
 
   delete[] r;
   delete[] local_r;

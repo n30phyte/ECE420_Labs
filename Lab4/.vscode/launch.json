@@ -5,12 +5,13 @@
       "name": "mpicxx - Build and debug Lab 4",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/Code/main",
+      "program": "/usr/lib64/mpich/bin/mpiexec",
       "stopAtEntry": true,
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/Code",
       "externalConsole": false,
       "MIMode": "gdb",
-      "preLaunchTask": "mpicc build Lab 4"
+      "preLaunchTask": "mpicc build Lab 4",
+      "args": ["-np", "4", "${workspaceFolder}/Code/main"]
     }
   ]
 }

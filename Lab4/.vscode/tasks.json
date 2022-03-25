@@ -5,7 +5,14 @@
       "label": "mpicc build Lab 4",
       "type": "shell",
       "command": "mpicxx",
-      "args": ["-g", "Code/main.cpp", "-o", "Code/main"],
+      "args": [
+        "-g",
+        "Code/main.cpp",
+        "Code/IO.c",
+        "Code/utils.c",
+        "-o",
+        "Code/main"
+      ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
