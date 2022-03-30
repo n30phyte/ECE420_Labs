@@ -18,21 +18,25 @@ with open("hosts") as hosts_file:
 
         for host in lines:
             subprocess.call("scp * %s:~" % host.strip(), shell=True)
+        
+        for i in range(10):
+            print("=========================")
+            print("Run number: " + str(i))
+            print("=========================")
+            for thread in threads:
+                subprocess.call(
+                    [
+                        "mpirun",
+                        "-np",
+                        thread,
+                        "-f", "hosts",
+                        "./main",
+                    ]
+                )
+                result = subprocess.call(["./serialtester"])
 
-        for thread in threads:
-            subprocess.call(
-                [
-                    "mpirun",
-                    "-np",
-                    thread,
-                    "-f", "hosts",
-                    "./main",
-                ]
-            )
-            result = subprocess.call(["./serialtester"])
+                if result != 0:
+                    print("Error for thread count: " + thread + " size: " + size)
+                    break
 
-            if result != 0:
-                print("Error for thread count: " + thread + " size: " + size)
-                break
-
-            os.rename("./data_output", "./data_output_" + thread + "_" + size)
+                os.rename("./data_output", "./data_output_" + thread + "_" + size + "_run_" + str(i))
