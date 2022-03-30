@@ -19,4 +19,4 @@ serialtester: serialtester.c IO.c IO.h utils.c utils.h
 	$(CC) $(CFLAGS) serialtester.c utils.c -lm -o $@
 
 clean:
-	rm -f main datatrim serialtester data_input data_output
+	rm -f main datatrim serialtester data_input* data_output
