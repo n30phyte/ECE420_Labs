@@ -25,6 +25,9 @@
       "new": "cpp",
       "math.h": "c",
       "stdlib.h": "c"
+    },
+    "files.watcherExclude": {
+      "**/target": true
     }
   }
 }
