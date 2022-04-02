@@ -29,5 +29,8 @@
     "files.watcherExclude": {
       "**/target": true
     }
+  },
+  "extensions": {
+    "recommendations": ["aaron-bond.better-comments"]
   }
 }
