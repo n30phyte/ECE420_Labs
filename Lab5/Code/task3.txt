@@ -1,0 +1,3 @@
+val file = sc.textFile("data_input")
+val nodes = file.map(x => (x.split('\t')(0), x.split('\t')(1))).groupByKey()
+val nodes_count = nodes.map(pair => (pair._1, pair._2.count(a => true))).reduce((x, y) => if(x._2 > y._2) x else y)

@@ -1,0 +1,2 @@
+val nodes = sc.textFile("data_input").map(x => (x.split('\t')(1), x.split('\t')(0))).groupByKey()
+val result = nodes.map(pair => (pair._1, pair._2.count(a => true))).map(_._2).reduce((x, y) => x max y)

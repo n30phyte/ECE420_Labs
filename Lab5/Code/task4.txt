@@ -1,0 +1,7 @@
+val file = sc.textFile("data_input")
+val nodes = file.map(x => (x.split('\t')(0), x.split('\t')(1))).groupByKey()
+val nodes2 = file.map(x => (x.split('\t')(1), x.split('\t')(0)))
+val nodes3 = nodes.join(nodes2).map(pair => (pair._2._2, pair._2._1))
+val pairs = nodes.flatMap( (pair)=> pair._2.map(x => (pair._1, x)))
+val pairs2 = nodes3.flatMap( (pair)=> pair._2.map(x => (pair._1, x)))
+val result = pairs ++ pairs2

@@ -1,0 +1,5 @@
+val file = sc.textFile("data_input")
+val nodes = file.map(x => (x.split('\t')(0), x.split('\t')(1))).groupByKey()
+val nodes2 = file.map(x => (x.split('\t')(1), x.split('\t')(0))).groupByKey()
+val result = nodes.reduceByKey(_ ++ _).map(x => (x._1, x._2.toList))
+
